@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Booking Prediction</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+  <!-- Load JS last with defer -->
+  <script src="scripts/indexscript.js" defer></script>
+</head>
+<body class="bg-cover bg-center min-h-screen text-white">
+
+  <!-- Components -->
+  <div id="bgimg"></div>
+  <div id="navbar"></div>
+
+  <!-- Hero -->
+  <section class="flex flex-col items-center justify-center min-h-screen px-4 text-center">
+    <h2 class="text-4xl md:text-5xl font-bold mb-6" 
+        style="text-shadow: 3px 3px 0px rgba(0,0,0,0.8);">
+      Welcome to Your<br>Hotel Booking Cancellation Predictor
+    </h2>
+
+    <p class="max-w-2xl text-lg mb-10"
+       style="text-shadow: 3px 3px 8px rgba(0,0,0,0.8);">
+      Predict your hotel booking outcomes with data-driven insights.
+    </p>
+    
+    <!-- Reviews Slider -->
+    <div class="glass rounded-xl w-full max-w-xl p-6">
+      <div class="overflow-hidden relative w-full">
+        <div id="slider" class="flex w-full transition-transform duration-500 ease-in-out"></div>
+      </div>
+      <div id="dots" class="flex justify-center mt-4 space-x-2"></div>
+    </div>
+  </section>
+
+</body>
+</html>

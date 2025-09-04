@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Analysis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="scripts/analysis_script.js" defer></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-cover bg-center min-h-screen text-white" >
+
+  <div id="bgimg"></div>
+    <div id="navbar"></div>
+
+  <!-- Form -->
+  <section class="flex justify-center items-center min-h-screen px-4">
+    <form id="analysisForm" class="glass p-8 rounded-2xl w-full max-w-lg space-y-6 mt-14">
+      <h2 class="text-2xl font-bold text-center mb-4">Booking Analysis Form</h2>
+
+      <div>
+        <label class="block mb-1 text-sm">Customer Name</label>
+        <input type="text" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none" required>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-sm">Check-in Date</label>
+        <input type="date" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none" required>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-sm">Nights Stayed</label>
+        <input type="number" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none" required>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-sm">Room Type</label>
+        <input type="text" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none" required>
+      </div>
+
+      <div>
+        <label class="block mb-1 text-sm">Special Requests</label>
+        <input type="text" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none">
+      </div>
+
+      <div class="flex justify-center space-x-4">
+        <button type="submit" class="px-6 py-2 rounded-lg bg-red-500 hover:bg-red-600">Submit</button>
+        <button type="reset" class="px-6 py-2 rounded-lg bg-gray-500 hover:bg-gray-600">Reset</button>
+      </div>
+    </form>
+  </section>
+
+  <script>
+   
+  </script>
+</body>
+</html>
