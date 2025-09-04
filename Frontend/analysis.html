@@ -8,50 +8,57 @@
   <script src="scripts/analysis_script.js" defer></script>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-cover bg-center min-h-screen text-white" >
+<body class="bg-cover bg-center min-h-screen text-white">
 
   <div id="bgimg"></div>
-    <div id="navbar"></div>
+  <div id="navbar"></div>
 
   <!-- Form -->
-  <section class="flex justify-center items-center min-h-screen px-4">
-    <form id="analysisForm" class="glass p-8 rounded-2xl w-full max-w-lg space-y-6 mt-14">
-      <h2 class="text-2xl font-bold text-center mb-4">Booking Analysis Form</h2>
+  <section class="flex items-center justify-center min-h-screen px-4">
+    <div class="w-full max-w-lg p-6 rounded-2xl shadow-lg
+                bg-white/20 backdrop-blur-lg border border-white/30
+                max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/30 scrollbar-track-transparent">
+      
+      <h2 class="text-2xl font-bold mb-4 text-center">Booking Analysis Form</h2>
+      
+      <form id="analysisForm" class="space-y-4">
+        <div>
+          <label class="form-label">Customer Name</label>
+          <input type="text" class="form-input" required>
+        </div>
 
-      <div>
-        <label class="block mb-1 text-sm">Customer Name</label>
-        <input type="text" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none" required>
-      </div>
+        <div>
+          <label class="form-label">Check-in Date</label>
+          <input type="date" class="form-input" required>
+        </div>
 
-      <div>
-        <label class="block mb-1 text-sm">Check-in Date</label>
-        <input type="date" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none" required>
-      </div>
+        <div>
+          <label class="form-label">Nights Stayed</label>
+          <input type="number" class="form-input" required>
+        </div>
 
-      <div>
-        <label class="block mb-1 text-sm">Nights Stayed</label>
-        <input type="number" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none" required>
-      </div>
+        <div>
+          <label class="form-label">Room Type</label>
+          <input type="text" class="form-input" required>
+        </div>
 
-      <div>
-        <label class="block mb-1 text-sm">Room Type</label>
-        <input type="text" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none" required>
-      </div>
+        <div>
+          <label class="form-label">Special Requests</label>
+          <input type="text" class="form-input">
+        </div>
 
-      <div>
-        <label class="block mb-1 text-sm">Special Requests</label>
-        <input type="text" class="w-full p-2 rounded-lg bg-white/20 focus:outline-none">
-      </div>
+        <div>
+          <label class="form-label">No of Children</label>
+          <input type="text" class="form-input">
+        </div>
 
-      <div class="flex justify-center space-x-4">
-        <button type="submit" class="px-6 py-2 rounded-lg bg-red-500 hover:bg-red-600">Submit</button>
-        <button type="reset" class="px-6 py-2 rounded-lg bg-gray-500 hover:bg-gray-600">Reset</button>
-      </div>
-    </form>
+        <div class="flex justify-center space-x-4 pt-2">
+          <button type="submit" class="px-6 py-2 rounded-lg bg-red-500 hover:bg-red-600">Submit</button>
+          <button type="reset" class="px-6 py-2 rounded-lg bg-gray-500 hover:bg-gray-600">Reset</button>
+        </div>
+      </form>
+    </div>
   </section>
 
-  <script>
-   
-  </script>
 </body>
 </html>
