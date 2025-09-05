@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, render_template, flash, redirect, url
 import sagemaker
 import boto3
 import json
+<<<<<<< HEAD
 import os
 from config import Config
 from aws_client import aws_client_manager
@@ -28,6 +29,18 @@ try:
         # Fallback to default credential chain (IAM roles, etc.)
         boto3_session = boto3.Session(region_name=region)
     
+=======
+
+# Initialize the flask app
+app = Flask(__name__)
+
+
+# --- SageMaker Endpoint Configuration ---
+try:
+    # Use the same region as your SageMaker training and endpoint
+    region = 'us-east-1'
+    boto3_session = boto3.Session(region_name=region)
+>>>>>>> 817fae96281c017347e44e0d321ca51d03a6cf68
     sagemaker_session = sagemaker.Session(boto_session=boto3_session)
     
     # Replace with your actual endpoint name
