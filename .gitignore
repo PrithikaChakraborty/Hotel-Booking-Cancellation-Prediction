@@ -155,6 +155,9 @@ Thumbs.db
 # Logs
 *.log
 
+# Local credentials
+CREDENTIALS-LOCAL.txt
+
 # Model files (if large)
 *.pkl
 *.joblib
