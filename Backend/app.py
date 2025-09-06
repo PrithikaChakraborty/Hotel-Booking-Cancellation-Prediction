@@ -10,7 +10,7 @@ import os
 # Get the absolute path to the directory containing this file (Backend/)
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Construct the path to the template folder (Frontend/templates)
-template_dir = os.path.join(basedir, '..', 'Frontend', 'templates')
+template_dir = os.path.join(basedir, '..', 'Frontend', 'Vivek_template')
 # Construct the path to the static folder (Frontend/static) for CSS/JS
 static_dir = os.path.join(basedir, '..', 'Frontend', 'static')
 
