@@ -1,25 +1,15 @@
 {
-  "family": "hotel-pred",
-  "networkMode": "bridge",
-  "executionRoleArn": "arn:aws:iam::289997608587:role/ecsTaskexecutor",
-  "taskRoleArn": "arn:aws:iam::289997608587:role/ecsTaskexecutor",
-  "requiresCompatibilities": [
-    "EC2"
+  "compatibilities": [
+    "EC2",
+    "FARGATE"
   ],
   "containerDefinitions": [
     {
-      "name": "hotel-pred",
-      "image": "placeholder-image",
-      "cpu": 0,
-      "memoryReservation": 512,
+      "cpu": 1024,
+      "environment": [],
+      "environmentFiles": [],
       "essential": true,
-      "portMappings": [
-        {
-          "containerPort": 5000,
-          "hostPort": 0,
-          "protocol": "tcp"
-        }
-      ],
+      "image": "289997608587.dkr.ecr.us-east-1.amazonaws.com/hotel-pred:latest",
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -27,9 +17,82 @@
           "awslogs-create-group": "true",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
+        },
+        "secretOptions": []
+      },
+      "memory": 1024,
+      "mountPoints": [],
+      "name": "hotel-pred",
+      "portMappings": [
+        {
+          "appProtocol": "http",
+          "containerPort": 80,
+          "hostPort": 80,
+          "name": "hotel-pred-80-tcp",
+          "protocol": "tcp"
+        },
+        {
+          "appProtocol": "http",
+          "containerPort": 5000,
+          "hostPort": 5000,
+          "name": "hotel-pred-5000-tcp",
+          "protocol": "tcp"
         }
-      }
+      ],
+      "systemControls": [],
+      "ulimits": [],
+      "volumesFrom": []
     }
-  ]
+  ],
+  "cpu": "1024",
+  "enableFaultInjection": false,
+  "executionRoleArn": "arn:aws:iam::289997608587:role/ecsTaskexecutor",
+  "family": "hotel-pred",
+  "memory": "3072",
+  "networkMode": "awsvpc",
+  "placementConstraints": [],
+  "registeredAt": "2025-09-06T16:35:49.234Z",
+  "registeredBy": "arn:aws:iam::289997608587:root",
+  "requiresAttributes": [
+    {
+      "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+    },
+    {
+      "name": "ecs.capability.execution-role-awslogs"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.ecr-auth"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.task-iam-role"
+    },
+    {
+      "name": "ecs.capability.execution-role-ecr-pull"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+    },
+    {
+      "name": "ecs.capability.task-eni"
+    },
+    {
+      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
+    }
+  ],
+  "requiresCompatibilities": [
+    "EC2"
+  ],
+  "revision": 1,
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "status": "ACTIVE",
+  "taskDefinitionArn": "arn:aws:ecs:us-east-1:289997608587:task-definition/hotel-pred:1",
+  "taskRoleArn": "arn:aws:iam::289997608587:role/ecsTaskexecutor",
+  "volumes": [],
+  "tags": []
 }
-
