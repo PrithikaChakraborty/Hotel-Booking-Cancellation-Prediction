@@ -4,15 +4,19 @@ from flask import Flask, request, jsonify, render_template, flash, redirect, url
 import sagemaker
 import boto3
 import json
+import os
 
-# Initialize the flask app
-app = Flask(__name__)
-# A secret key is needed for flashing messages
-app.secret_key = 'some_secret_key' 
+# --- FIX #1: Tell Flask where to find the template files ---
+# We assume your HTML files are in a folder like Frontend/templates
+template_dir = os.path.abspath('../Frontend/templates')
+app = Flask(__name__, template_folder=template_dir)
+
+# --- FIX #2: Add a secret key required for flashing messages ---
+app.secret_key = 'dev_secret_key' # Replace with a real secret in production
 
 # --- SageMaker Endpoint Configuration ---
 try:
-    # Hardcode the region to 'us-east-1' as requested
+    # Hardcode the region to 'us-east-1'
     region = 'us-east-1'
     boto3_session = boto3.Session(region_name=region)
     sagemaker_session = sagemaker.Session(boto_session=boto3_session)
@@ -63,12 +67,9 @@ def batch_predict():
                 df = pd.read_csv(file)
                 original_df = df.copy()
 
-                # Send the raw data to the SageMaker endpoint
-                # The endpoint's inference.py script handles all preprocessing
                 payload = original_df.to_dict('records')
                 predictions_response = predictor.predict(payload)
 
-                # The response is a list of predictions and probabilities
                 predictions = np.array(predictions_response['predictions'])
                 probabilities = np.array(predictions_response['probabilities'])
 
@@ -77,7 +78,6 @@ def batch_predict():
                 total_bookings = len(original_df)
                 total_cancellations = int(np.sum(predictions))
                 
-                # Use a month map that includes all months to avoid errors
                 month_map_to_name = {
                     1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June', 
                     7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'
@@ -86,9 +86,9 @@ def batch_predict():
                 monthly_cancellations = original_df[original_df['Predicted Cancellation'] == 'Yes']['arrival_date_month'].map(month_map_to_name.get).value_counts().to_dict()
                 
                 recommendation = "Low cancellation risk detected. Standard operational procedures are likely sufficient."
-                if total_bookings > 0 and total_cancellations / total_bookings > 0.5:
+                if total_bookings > 0 and (total_cancellations / total_bookings) > 0.5:
                     recommendation = "High cancellation risk! Consider implementing a strategic overbooking policy for high-risk months and focus on guest communication to confirm bookings."
-                elif total_bookings > 0 and total_cancellations / total_bookings > 0.2:
+                elif total_bookings > 0 and (total_cancellations / total_bookings) > 0.2:
                     recommendation = "Moderate cancellation risk. It is advisable to send confirmation emails to guests with high cancellation probability and review booking policies for flexibility."
 
                 results_html = original_df[['hotel', 'arrival_date_month', 'lead_time', 'adr', 'Predicted Cancellation', 'Cancellation Probability']].to_html(classes='table table-striped table-hover', index=False)
@@ -100,8 +100,11 @@ def batch_predict():
                                        monthly_cancellations=monthly_cancellations,
                                        recommendation=recommendation)
             except Exception as e:
-                flash(f'An error occurred: {e}', 'danger')
+                flash(f'An error occurred during batch prediction: {e}', 'danger')
                 return redirect(request.url)
+        else:
+            flash('Invalid file type. Please upload a CSV file.', 'warning')
+            return redirect(request.url)
 
     return render_template('batch.html', results_html=None)
 
@@ -115,11 +118,8 @@ def predict():
         data = request.get_json(force=True)
         query_df = pd.DataFrame([data])
         
-        # Send raw JSON to the endpoint.
-        # The endpoint's inference.py handles all preprocessing.
         predictions_response = predictor.predict(query_df.to_dict('records'))
         
-        # The response is a list containing predictions and probabilities
         prediction = predictions_response['predictions'][0]
         probability = predictions_response['probabilities'][0]
         
