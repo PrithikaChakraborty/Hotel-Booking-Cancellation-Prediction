@@ -6,22 +6,26 @@ import boto3
 import json
 import os
 
-# --- FIX #1: Tell Flask where to find the template files ---
-# We assume your HTML files are in a folder like Frontend/templates
-template_dir = os.path.abspath('../Frontend/templates')
-app = Flask(__name__, template_folder=template_dir)
+# --- FIX #1: Robustly tell Flask where to find the template and static files ---
+# Get the absolute path to the directory containing this file (Backend/)
+basedir = os.path.abspath(os.path.dirname(__file__))
+# Construct the path to the template folder (Frontend/templates)
+template_dir = os.path.join(basedir, '..', 'Frontend', 'templates')
+# Construct the path to the static folder (Frontend/static) for CSS/JS
+static_dir = os.path.join(basedir, '..', 'Frontend', 'static')
 
-# --- FIX #2: Add a secret key required for flashing messages ---
-app.secret_key = 'dev_secret_key' # Replace with a real secret in production
+# Initialize the Flask app with the correct paths
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+
+# --- FIX #2: Add a secret key, which is required for flashing messages ---
+app.secret_key = 'a-very-secret-key-for-development'
 
 # --- SageMaker Endpoint Configuration ---
 try:
-    # Hardcode the region to 'us-east-1'
     region = 'us-east-1'
     boto3_session = boto3.Session(region_name=region)
     sagemaker_session = sagemaker.Session(boto_session=boto3_session)
     
-    # Replace with your actual endpoint name
     endpoint_name = "hotel-booking-model-2025-09-05-19-02-37" 
     predictor = sagemaker.predictor.Predictor(
         endpoint_name=endpoint_name, 
@@ -54,13 +58,11 @@ def batch_predict():
         return redirect(request.url)
 
     if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('No file part', 'danger')
+        if 'file' not in request.files or request.files['file'].filename == '':
+            flash('No file selected for upload.', 'warning')
             return redirect(request.url)
+        
         file = request.files['file']
-        if file.filename == '':
-            flash('No selected file', 'danger')
-            return redirect(request.url)
         
         if file and file.filename.endswith('.csv'):
             try:
@@ -137,3 +139,4 @@ def predict():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
