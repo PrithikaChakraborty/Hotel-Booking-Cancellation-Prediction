@@ -6,14 +6,17 @@ on:
   pull_request:
     branches: [ main ]
 
+# FIX #2: Added permissions block to allow security scan uploads
+permissions:
+  contents: read
+  security-events: write
+
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: hotel-pred
   ECS_SERVICE: hotel-pred
   ECS_CLUSTER: hotel-pred
-  # This should be the path to your task definition file in your repo
   ECS_TASK_DEFINITION_FILE: hotel-pred.json
-  # This should match the container name inside your task definition
   CONTAINER_NAME: hotel-pred
 
 jobs:
@@ -40,8 +43,9 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run tests with coverage
+      # FIX #1: Removed "tests/" from the command to fix exit code 4
       run: |
-        python -m pytest tests/ -v --cov=Backend --cov-report=xml
+        python -m pytest -v --cov=Backend --cov-report=xml
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -61,18 +65,15 @@ jobs:
         scan-ref: '.'
         format: 'sarif'
         output: 'trivy-results.sarif'
-        # To fail the build on critical vulnerabilities, add:
-        # severity: 'CRITICAL,HIGH'
-        # exit-code: '1'
 
     - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always() # Ensure this runs even if Trivy finds vulnerabilities and fails
+      # FIX #3: Updated the action from v2 to v3
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
       with:
         sarif_file: 'trivy-results.sarif'
 
   build-and-deploy:
-    # <-- CHANGED: Runs in parallel with tests, saving time
     needs: [test, security-scan]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -87,8 +88,6 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
-    
-    # <-- REMOVED: The redundant "Set up environment variables" step is gone.
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -115,7 +114,6 @@ jobs:
     - name: Deploy Amazon ECS task definition
       id: ecs-deploy
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      # <-- CRITICAL FIX: Removed 'continue-on-error: true'
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ env.ECS_SERVICE }}
@@ -123,12 +121,12 @@ jobs:
         wait-for-service-stability: true
 
     - name: Post-Deployment Health Check
-      if: success() # Only runs if deployment was successful
+      if: success()
       run: |
         echo "✅ ECS deployment successful"
         if [ -n "${{ secrets.APP_URL }}" ]; then
           echo "Waiting for service to be available..."
-          sleep 30 # Give LB time to register new targets
+          sleep 30
           echo "Pinging application URL: ${{ secrets.APP_URL }}"
           curl -f ${{ secrets.APP_URL }}/ || (echo "⚠️ Health check FAILED" && exit 1)
           echo "✅ Health check PASSED"
