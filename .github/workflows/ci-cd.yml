@@ -41,8 +41,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    # --- DEBUGGING STEP ADDED ---
+    # This step will show us the exact file structure.
+    - name: List files in the repository
+      run: |
+        ls -R
+
     - name: Run tests with coverage
-      # FINAL FIX: This now correctly points to your 'tasks' folder.
       run: |
         python -m pytest tasks/ -v --cov=Backend --cov-report=xml
 
@@ -117,5 +122,25 @@ jobs:
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
+```
 
+### Step 2: Commit and Check the Logs
+
+1.  **Commit and push** this new workflow file to your GitHub repository.
+2.  The action will run again, and the `test` job will fail again (this is expected).
+3.  Go to the **Actions** tab, click on this new failed run, and click on the `test` job.
+4.  Find and expand the step called **"List files in the repository"**.
+5.  **Copy the entire output** of that step. It will look something like this:
+
+    ```
+    .
+    ./Backend
+    ./Backend/app.py
+    ./Frontend
+    ./Frontend/index.html
+    ./tasks
+    ./tasks/test.py
+    ./Dockerfile
+    ./requirements.txt
+    
 
