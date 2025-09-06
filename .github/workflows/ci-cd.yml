@@ -8,10 +8,13 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: hotel-booking-prediction
-  ECS_SERVICE: hotel-booking-service
-  ECS_CLUSTER: hotel-booking-cluster
-  ECS_TASK_DEFINITION: hotel-booking-task
+  ECR_REPOSITORY: hotel-pred
+  ECS_SERVICE: hotel-pred
+  ECS_CLUSTER: hotel-pred
+  # This should be the path to your task definition file in your repo
+  ECS_TASK_DEFINITION_FILE: hotel-pred.json
+  # This should match the container name inside your task definition
+  CONTAINER_NAME: hotel-pred
 
 jobs:
   test:
@@ -36,7 +39,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Run tests
+    - name: Run tests with coverage
       run: |
         python -m pytest tests/ -v --cov=Backend --cov-report=xml
 
@@ -44,9 +47,33 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
+        
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        # To fail the build on critical vulnerabilities, add:
+        # severity: 'CRITICAL,HIGH'
+        # exit-code: '1'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always() # Ensure this runs even if Trivy finds vulnerabilities and fails
+      with:
+        sarif_file: 'trivy-results.sarif'
 
   build-and-deploy:
-    needs: test
+    # <-- CHANGED: Runs in parallel with tests, saving time
+    needs: [test, security-scan]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     
@@ -61,11 +88,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
     
-    - name: Set up environment variables
-      run: |
-        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-        echo "AWS_DEFAULT_REGION=${{ env.AWS_REGION }}" >> $GITHUB_ENV
+    # <-- REMOVED: The redundant "Set up environment variables" step is gone.
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -77,7 +100,6 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Build a docker container and push it to ECR
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -86,55 +108,30 @@ jobs:
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: .aws/task-definition.json
-        container-name: hotel-booking-container
+        task-definition: ${{ env.ECS_TASK_DEFINITION_FILE }}
+        container-name: ${{ env.CONTAINER_NAME }}
         image: ${{ steps.build-image.outputs.image }}
 
     - name: Deploy Amazon ECS task definition
+      id: ecs-deploy
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      continue-on-error: true
+      # <-- CRITICAL FIX: Removed 'continue-on-error: true'
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
 
-    - name: Check deployment status
+    - name: Post-Deployment Health Check
+      if: success() # Only runs if deployment was successful
       run: |
-        if [ $? -eq 0 ]; then
-          echo "✅ ECS deployment successful"
-          echo "🌐 Application URL: ${{ secrets.APP_URL }}"
+        echo "✅ ECS deployment successful"
+        if [ -n "${{ secrets.APP_URL }}" ]; then
+          echo "Waiting for service to be available..."
+          sleep 30 # Give LB time to register new targets
+          echo "Pinging application URL: ${{ secrets.APP_URL }}"
+          curl -f ${{ secrets.APP_URL }}/ || (echo "⚠️ Health check FAILED" && exit 1)
+          echo "✅ Health check PASSED"
         else
-          echo "⚠️ ECS deployment failed - likely due to insufficient permissions"
-          echo "📋 Check SIMPLIFIED-DEPLOYMENT-GUIDE.md for alternative deployment options"
+          echo "ℹ️ APP_URL secret not set. Skipping health check."
         fi
-
-    - name: Run health check
-      if: success()
-      run: |
-        if [ -n "${{ secrets.APP_URL }}" ] && [ "${{ secrets.APP_URL }}" != "http://localhost:5000" ]; then
-          sleep 30
-          curl -f ${{ secrets.APP_URL }}/ || echo "⚠️ Health check failed - service may not be accessible"
-        else
-          echo "ℹ️ Skipping health check - using local development setup"
-        fi
-
-  security-scan:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
