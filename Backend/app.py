@@ -4,43 +4,17 @@ from flask import Flask, request, jsonify, render_template, flash, redirect, url
 import sagemaker
 import boto3
 import json
-<<<<<<< HEAD
-import os
-from config import Config
-from aws_client import aws_client_manager
 
 # Initialize the flask app
 app = Flask(__name__)
-app.config.from_object(Config)
+# A secret key is needed for flashing messages
+app.secret_key = 'some_secret_key' 
 
 # --- SageMaker Endpoint Configuration ---
 try:
-    # Use the configured region from environment variables
-    region = Config.AWS_DEFAULT_REGION
-    
-    # Create boto3 session with secure credentials
-    if Config.validate_aws_credentials():
-        boto3_session = boto3.Session(
-            aws_access_key_id=Config.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=Config.AWS_SECRET_ACCESS_KEY,
-            region_name=region
-        )
-    else:
-        # Fallback to default credential chain (IAM roles, etc.)
-        boto3_session = boto3.Session(region_name=region)
-    
-=======
-
-# Initialize the flask app
-app = Flask(__name__)
-
-
-# --- SageMaker Endpoint Configuration ---
-try:
-    # Use the same region as your SageMaker training and endpoint
+    # Hardcode the region to 'us-east-1' as requested
     region = 'us-east-1'
     boto3_session = boto3.Session(region_name=region)
->>>>>>> 817fae96281c017347e44e0d321ca51d03a6cf68
     sagemaker_session = sagemaker.Session(boto_session=boto3_session)
     
     # Replace with your actual endpoint name
@@ -101,7 +75,7 @@ def batch_predict():
                 original_df['Predicted Cancellation'] = ['Yes' if p == 1 else 'No' for p in predictions]
                 original_df['Cancellation Probability'] = [f"{p*100:.2f}%" for p in probabilities]
                 total_bookings = len(original_df)
-                total_cancellations = np.sum(predictions)
+                total_cancellations = int(np.sum(predictions))
                 
                 # Use a month map that includes all months to avoid errors
                 month_map_to_name = {
@@ -145,18 +119,18 @@ def predict():
         # The endpoint's inference.py handles all preprocessing.
         predictions_response = predictor.predict(query_df.to_dict('records'))
         
-        # The response is a list of predictions and probabilities
+        # The response is a list containing predictions and probabilities
         prediction = predictions_response['predictions'][0]
-        probabilities = predictions_response['probabilities'][0]
+        probability = predictions_response['probabilities'][0]
         
         if prediction == 1:
             output = "Booking will be Cancelled"
-            probability = f"{probabilities*100:.2f}%"
+            probability_text = f"{probability*100:.2f}%"
         else:
             output = "Booking will not be Cancelled"
-            probability = f"{probabilities*100:.2f}%"
+            probability_text = f"{probability*100:.2f}%"
             
-        return jsonify({'prediction_text': output, 'probability': probability})
+        return jsonify({'prediction_text': output, 'probability': probability_text})
     except Exception as e:
         print(f"Prediction Error: {e}")
         return jsonify({'error': str(e)}), 400
