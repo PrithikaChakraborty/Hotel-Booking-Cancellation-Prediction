@@ -41,13 +41,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    # Debugging step to find the correct file paths
+    # --- THIS IS THE CRITICAL DEBUGGING STEP ---
     - name: List files in the repository
       run: |
+        echo "Looking for test files in the directory structure:"
         ls -R
 
     - name: Run tests with coverage
       run: |
+        # This command is expected to fail, but the step above will give us the info we need
         python -m pytest tasks/ -v --cov=Backend --cov-report=xml
 
     - name: Upload coverage to Codecov
@@ -121,5 +123,4 @@ jobs:
         service: ${{ env.ECS_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
-
 
