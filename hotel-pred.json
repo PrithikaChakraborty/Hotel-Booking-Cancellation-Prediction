@@ -13,7 +13,6 @@
       "name": "hotel-pred",
       "image": "placeholder-image",
       "cpu": 1024,
-      "memory": 1024,
       "essential": true,
       "portMappings": [
         {
@@ -29,8 +28,8 @@
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
-      }
+      },
+      "memory": 2048
     }
   ]
 }
-
