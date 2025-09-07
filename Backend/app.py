@@ -26,7 +26,7 @@ try:
     boto3_session = boto3.Session(region_name=region)
     sagemaker_session = sagemaker.Session(boto_session=boto3_session)
     
-    endpoint_name = "hotel-booking-model-2025-09-05-19-02-37" 
+    endpoint_name = "hotel-booking-model-2025-09-07-02-50-32" 
     predictor = sagemaker.predictor.Predictor(
         endpoint_name=endpoint_name, 
         sagemaker_session=sagemaker_session,
